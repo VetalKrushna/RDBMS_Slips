@@ -1,0 +1,55 @@
+create table Customer (cno integer primary key, cname varchar(20), city varchar(20));
+insert into customer values(101,'Ram','Pune');
+insert into customer values(102,'Om','Nagar');
+
+create table Account (a_no int primary key, a_type varchar(10),opening_date  date, balance money,cno int references customer);
+insert into Account values(1,'saving','2004-03-31','5753554',101);
+insert into Account values(2,'current','2004-03-31','5753554',101);
+insert into Account values(3,'saving','2004-03-31','5753554',102);
+
+i. Write a function which accepts account no as input and prints the details of that account.
+=
+  create or replace function a(no int)returns void as $$
+ declare
+  r1 account%rowtype;
+    begin
+     select * into r1 from account where a_no=no;
+        raise notice'Ano=% Type=% date=% Balance=%', r1.a_no,r1.a_type,r1.opening_date,r1.balance; 
+     end; $$ language plpgsql;
+ select a(1); 
+
+ii. Write a function using cursor which accepts customer name and prints all account details of that customer. If the customer name is invalid, print appropriate message.
+=
+  create or replace function disp(cust_name varchar(20))returns void as $$
+  declare
+   c int=0;
+   r1 account%rowtype;
+   c1 cursor for select * from account as a,customer as c where a.cno=c.cno and cname=cust_name;
+  begin
+   open c1;
+     loop
+    fetch c1 into r1;
+    exit when not found;
+        raise notice'Ano=% Type=% date=% Balance=%', r1.a_no,r1.a_type,r1.opening_date,r1.balance; 
+      c=1;
+   end loop;
+close c1;
+   if (c=0) then 
+          raise exception'Invalid customer name!!';
+    end if;
+end; $$ language plpgsql;
+
+select disp('Ram');     
+
+iii. Write a trigger which is executed whenever update is made to the account table. If the balance becomes less than 1000, print an error message that balance cannot be less than 1000.
+
+ create or replace function bal() returns trigger as $$
+ begin
+   if new.balance<='1000' then 
+    raise exception'Balance should be greater than 1000...';
+  end if;
+ end ; $$ language plpgsql;
+ 
+ create trigger tb after update on account for each row execute pocedure bal(); 
+
+ update account set balance='100' where a_no=1;

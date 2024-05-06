@@ -1,0 +1,73 @@
+create table CAR(c_no int primary key,owner varchar(20),
+model text,colour text);
+
+insert into CAR values(101,'OM','Ertiga','White');
+insert into CAR values(102,'Sai','SUV700','White');
+insert into CAR values(103,'Ram','Ertiga','RED');
+
+create table driver(driver_no int primary key,
+driver_name text,lic_no int,d_age int,sal int);
+
+insert into driver values(1,'aman',1111,30,9000);
+insert into driver values(2,'sham',2222,40,12000);
+insert into driver values(3,'aba',3333,35,15000);
+
+create table CD(c_no int references CAR,driver_no int references driver);
+
+insert into CD values(101,1);
+insert into cD values(102,2);
+insert into cD values(103,3);
+insert into cD values(103,1);
+
+i. Write a function which accepts the model name and prints all 
+cars of that model.
+
+create or replace function cr(m_name text) returns text as $$
+ declare
+ c car%rowtype;
+ begin
+  select * into c from car where model=m_name;
+  return c;
+ end; $$ language plpgsql;
+select cr('Ertiga');
+
+
+ii. Write a trigger before insert/update on Driver. Raise 
+exception if driver age is < 21.
+
+create or replace function ll()returns trigger as $$ 
+ begin  
+ if new.d_age<=21 then
+    raise exception'Driver age should be greater than 21';
+ end if;
+ end; $$ language plpgsql;
+  
+ create trigger lk_l before insert or update on driver for each row execute procedure ll();
+update driver set d_age=20 where d_age=30;
+
+iii. Write a cursor which accepts the driver name and prints the 
+details of all cars that this driver has driven, if the driver 
+name is invalid, print an appropriate message.
+
+
+  create or replace function disp12(d_name varchar(20))returns void as $$
+  declare
+   c int=0;
+   r1 car%rowtype;
+   c1 cursor for select * from car,driver as d,cd where cd.driver_no=d.driver_no and cd.c_no=car.c_no and driver_name=d_name;
+  begin
+   open c1;
+     loop
+    fetch c1 into r1;
+    exit when not found;
+        raise notice'Cno=% Owner=% Model=% color=%', r1.c_no,r1.owner,r1.model,r1.colour; 
+      c=1;
+   end loop;
+close c1;
+   if (c=0) then 
+          raise exception'Invalid Driver name!!';
+    end if;
+end; $$ language plpgsql;
+
+select disp12('Ram');     
+

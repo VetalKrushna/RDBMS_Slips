@@ -1,0 +1,72 @@
+many to one
+create table Department (dno int primary key,dname varchar(10)not null,city varchar(10));
+
+create table employee(eno int primary key,ename varchar(10)not null,sal int,dno int references dept);
+
+insert into department values(101,'computer','pune');
+insert into department values(102,'finance','mumbai');
+insert into department values(103,'sales','pune');
+insert into department values(104,'purchase','Nashik');
+insert into department values(105,'production','Shrirampur');
+
+
+insert into employee values(1,'om',50000,101);
+insert into employee values(2,'sai',40000,101);
+
+insert into employee values(3,'ram',70000,102);
+insert into employee values(4,'sham',24000,102);
+
+insert into employee values(5,'aba',40000,103);
+insert into employee values(6,'baba',25000,103);
+
+insert into employee values(7,'dada',70000,104);
+insert into employee values(8,'ganesh',24000,104);
+
+insert into employee values(9,'abhi',80000,105);
+insert into employee values(10,'athang',64000,105);
+
+
+i. Write a function to accept department name and return the 
+number of employees of that department.
+
+create or replace function u(d_name department.dname%type)returns int as $$
+  declare 
+   c int ;
+  begin
+   select count(*) into c from employee as e,department as d where d.dno=e.dno and dname=d_name;
+ return c;
+ end ;
+ $$
+ language plpgsql;
+  select u('finance');
+
+
+ii. Write a cursor to accept salary as input and display the names of 
+employees having salary > that value.
+
+create or replace function k(s employee.sal%type)returns void as $$
+ declare
+  e_name employee.ename%type;
+   c1 cursor for select ename from employee where sal>s;
+  begin
+   open c1;
+    loop
+     fetch c1 into e_name;
+      exit when not found;
+       raise notice'Name of employee=%',e_name;
+       end loop;
+     close c1;
+   end; $$ language plpgsql;
+  select k(544);
+
+iii. Write a trigger after insert on an employee record. Display 
+appropriate message when the record is inserted.
+
+create or replace function l() returns trigger as $$
+ begin 
+ if new.eno>0 then 
+     raise notice'Insert successfully';
+ end if;
+ end; $$ language  plpgsql;
+ 
+create trigger g after insert on employee for each row execute procedure l();

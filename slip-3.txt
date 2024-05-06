@@ -1,0 +1,68 @@
+
+create table Hospital (h_no int primary key, h_name varchar(20), city varchar(10));
+
+create table Doctor (d_no int primary key,d_name varchar(30),
+specialization varchar(35),charges int,h_no int references hospital);
+
+insert into hospital values(101,'Morge','Shrirampur');
+insert into hospital values(102,'Padghan','Shrirampur');
+insert into hospital values(103,'Kamgar','Shrirampur'); 
+
+insert into doctor values(1,'Dr.Morge','MBBS',1000,101);
+insert into doctor values(2,'Dr.Sahil','MBBS',500,101);
+insert into doctor values(3,'Dr.kale','MBBS',600,102);
+insert into doctor values(4,'Dr.Gadhe','MBBS',5000,102);
+insert into doctor values(5,'Dr.Mohan','MBBS',400,103);
+
+
+i. Write a trigger before insert/update on Doctor table. Raise 
+   exception if charges are <0 . 
+= create or replace function f1()returns trigger as 
+$$
+begin
+ if new.charges<0 then
+   raise exception'charges less than zero not allowed!';
+  end if;
+ end;
+$$
+ language plpgsql;
+
+create trigger t1 before update or insert on doctor for each row execute procedure f1();
+
+insert into doctor (charges) values (-32);
+ 
+ii. Write a function which will accept the name of the doctor and
+print the hospital details that the doctor is visiting.
+=
+  create or replace function f_1(dname doctor.d_name%type) returns void as $$
+    declare
+     h1 hospital%rowtype; 
+     c1 cursor for select * from hospital as h,doctor as d where d.h_no=h.h_no and d_name=dname;
+    begin
+     open c1;
+     loop
+	fetch c1 into h1;
+	exit when not found;
+	 raise notice'Hospital no=% Hospital name=% City=%',h1.h_no,h1.h_name,h1.city;  
+     end loop;
+    close c1;
+end ; $$ language plpgsql;
+select f_1('Dr.Morge');	 
+	
+iii. Write a function using cursor to accept the city name and print
+the names of all hospitals in that city.
+=
+ create or replace function f_1(c_name hospital.city%type) returns void as $$
+    declare
+     h1 hospital.h_name%type; 
+     c1 cursor for select h_name from hospital where city=c_name;
+    begin
+     open c1;
+     loop
+	fetch c1 into h1;
+	exit when not found;
+	 raise notice'Hospital name=% ',h1;  
+     end loop;
+    close c1;
+end ; $$ language plpgsql;
+select f_1('Shrirampur');	   

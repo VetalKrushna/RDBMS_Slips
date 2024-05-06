@@ -1,0 +1,28 @@
+create table employee(eno int primary key ,ename varchar(10),salary int check(salary>0),joining_date date);
+
+create table project(pno int primary key ,pname varchar(10), ptype char (20), duration int);
+
+create table ep (eno int references employee, pno int references project,start_date date);
+ 
+insert into employee values(1,'om',10000,'2005-03-5');
+insert into employee values(2,'sham',5000,'2025-03-5');
+insert into employee values(3,'kumar',9000,'2015-03-5');
+insert into employee values(4,'dada',8000,'2004-03-5');
+
+insert into project values(14,'man','Free',8000);
+insert into project values(24,'ai','Paid',8000);
+insert into project values(34,'robot','Paid',8000);
+insert into project values(44,'kaa','Free',8000);
+
+insert into ep values(1,14,'2005-03-5');
+insert into ep values(2,24,'2050-01-9');
+insert into ep values(3,34,'2005-03-01');
+insert into ep values(4,44,'2009-03-10');
+
+
+i. Write a cursor to accept the employee name as an input parameter
+and displays the names of projects of that employee.
+ii. Write a stored function to count all employees who have joined
+before ‘01/02/2010’.
+iii. Write a trigger which ensures that if an employee's salary entered
+less than zero, the trigger gets fired.

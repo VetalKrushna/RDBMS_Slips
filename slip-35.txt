@@ -1,0 +1,75 @@
+create table employee(eno int primary key ,ename varchar(10),salary int check(salary>0),joining_date date);
+
+create table project(pno int primary key ,pname varchar(10), ptype char (20), duration int);
+
+create table ep (eno int references employee, pno int references project,start_date date);
+ 
+insert into employee values(1,'om',10000,'2005-03-5');
+insert into employee values(2,'sham',5000,'2025-03-5');
+insert into employee values(3,'kumar',9000,'2015-03-5');
+insert into employee values(4,'dada',8000,'2004-03-5');
+
+insert into project values(14,'man','Free',8000);
+insert into project values(24,'ai','Paid',8000);
+insert into project values(34,'robot','Paid',8000);
+insert into project values(44,'kaa','Free',8000);
+
+insert into ep values(1,14,'2005-03-5');
+insert into ep values(2,24,'2050-01-9');
+insert into ep values(3,34,'2005-03-01');
+insert into ep values(4,44,'2009-03-10');
+
+
+
+i. Write a stored function to accept project type as an input and display 
+all project names of that type. Raise an exception if the type is
+invalid.
+
+create or replace function hh(p_type project.ptype%type)returns void as $$
+  declare
+ c int=0;
+   p record;
+  begin
+   for p in select pname from project where ptype=p_type
+     loop
+       raise notice'Project name=%',p;
+     c=1;
+     end loop;
+   if c=0 then 
+     raise exception'Invalid project type';
+    end if;
+   end; $$ language plpgsql;
+  select hh('Free');
+
+ii. Write a trigger which will get fired before insert/update on project 
+table which will check the duration > 0. Display appropriate 
+message.
+
+ create or replace function w() returns trigger as $$
+  begin
+   if new.duration<=0 then 
+   raise exception' Invalid duration';
+   end if;
+ end; $$ language plpgsql;
+  
+ create trigger f before insert or update on project for each row execute procedure w();
+ 
+iii. Write a cursor to accept the project name as an input parameter from 
+the user and display the names of employees working on that 
+project.
+
+create or replace function dis(name project.pname%type)returns void as $$ 
+declare
+ n employee.ename%type;
+ c1 cursor for select ename from employee as e,project as p,ep where ep.eno=e.eno and p.pno=ep.pno and pname=name;
+
+ begin
+   open c1;
+    loop
+     fetch c1 into n;
+    exit when not found;
+      raise notice'Employee name=%',n;
+    end loop;
+  close  c1;
+ end ; $$ language plpgsql;
+ select dis('man');

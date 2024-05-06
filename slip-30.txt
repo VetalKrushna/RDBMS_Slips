@@ -1,0 +1,55 @@
+create table Customer (cno integer primary key, cname varchar(20), city varchar(20));
+insert into customer values(101,'Ram','Pune');
+insert into customer values(102,'Om','Nagar');
+
+create table Account (a_no int primary key, a_type varchar(10),opening_date  date, balance money,cno int references customer);
+insert into Account values(1,'saving','2004-03-31','5753554',101);
+insert into Account values(2,'current','2004-03-31','5753554',101);
+insert into Account values(3,'saving','2004-03-31','5753554',102);
+
+
+
+i. Write a function which accepts customer name as input and counts
+the total number of accounts of that customer.
+
+ create or replace function t(c_name customer.cname%type)returns int as $$
+    declare
+      c int;
+   begin
+    select count(*) into c from account as a,customer as c where a.cno=c.cno and cname=c_name;
+     return c;
+  end; $$ language plpgsql;
+ select t('Ram');
+
+ii. Write a function using cursor which accepts city name as input and
+prints the details of all customers in that city
+  
+create or replace function disp1(city_name varchar(20))returns void as $$
+  declare
+   r1 customer%rowtype;
+   c1 cursor for select * from customer where city=city_name;
+  begin
+   open c1;
+     loop
+    fetch c1 into r1;
+    exit when not found;
+        raise notice'cno=% Cname=% city=%',r1.cno,r1.cname,r1.city; 
+      
+   end loop;
+close c1;
+end; $$ language plpgsql;
+
+select disp1('Pune');     
+
+iii. Write a trigger which does not allow deletion of accounts of
+type.
+
+create or replace function p()returns trigger as $$
+ begin
+  if a_type='saving' then
+   raise exception'You can not delete saving account';
+  end if;
+ end; $$ language plpgsql;
+ 
+ create trigger pp before delete on account for each row execute procedure p();
+ delete from account where a_type='saving'; 

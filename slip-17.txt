@@ -1,0 +1,66 @@
+create table student(Roll_No int primary key, Sname varchar (20), Sclass char (10)check (Sclass in('fy','sy','ty')));
+
+create table teacher(tno int primary key,tname varchar(10),experience numeric(5));
+ 
+create table st(Roll_No int references student,tno int references teacher,subject text);
+ 
+insert into student values(1,'sham','fy');
+insert into student values(2,'ram','sy');
+insert into student values(3,'aman','sy');
+insert into student values(4,'sai','ty');
+
+insert into teacher values(11,'Mr.sai',12);
+insert into teacher values(22,'Mr.patil',4);
+insert into teacher values(33,'Mrs.shinde',7);
+insert into teacher values(44,'Mrs.pawar',11);
+
+insert into st values(1,11,'DBMS');
+insert into st values(2,22,'COMPUTER');
+insert into st values(3,33,'DBMS');
+insert into st values(4,44,'DBMS');
+
+
+i. Write a trigger before inserting the teacher record into a teacher
+table. Experience should be a minimum of 4 years. If it is less than 4
+years trigger gets fired and displays an appropriate message.
+
+create or replace function b() returns trigger as $$
+ begin
+   if new.experience<=4 then
+     raise exception'Experience should greater than 4';
+   end if ;
+  end; $$ language plpgsql;
+ 
+create trigger w before insert on teacher for each row execute procedure b();
+
+insert into teacher (experience) values(2);
+
+ii. Write a cursor to accept the student name from the user as an input
+and give list of subjects taken by the student.
+
+create or replace function q(name student.sname%type)returns void as $$
+ declare
+  sub text;
+    c1 cursor for select subject from st,student as s where s.Roll_No=st.Roll_no and sname=name;
+begin
+ open c1;
+  loop
+    fetch c1 into sub;
+    exit when not found;
+    raise notice'Subject=%',sub;
+    end loop;
+ close c1;
+ end; $$ language plpgsql;
+ select q('sham'); 
+
+iii. Write a stored function to find the details of the maximum
+experienced teacher.
+
+create or replace function z()returns void as $$
+ declare
+  r1 teacher%rowtype;
+  begin
+   select * into r1 from teacher where experience=(select max(experience)from teacher);
+   raise notice'No=% Tname=% Experience=%',r1.tno,r1.tname,r1.experience;
+  end; $$ language plpgsql;
+ select z(); 

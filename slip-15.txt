@@ -1,0 +1,65 @@
+ many to maany
+create table Item (item_no int primary key,iname varchar(20));
+
+create table Supplier (s_no int primary key, sname varchar(20), city char(10));
+
+create table I_S (item_no int references item,s_no int references supplier,rate int,quantity int );
+
+insert into item values(101, 'keyboard');
+insert into item values(102,'mouse');
+insert into item values(103, 'monitor');
+
+insert into supplier values(1,'om', 'pune');
+insert into supplier values(2, 'sai', 'pune');
+insert into supplier values (3, 'ram', 'shrirampur');
+insert into supplier values(4,'sham', 'shrirampur');
+
+insert into I_S values(101,1,350,6); 
+insert into I_S values(102,1,200,4);
+insert into I_S values(101,2,250,8);
+insert into I_S values(102,2,150,7);
+insert into I_S values(103,2,5000,6); 
+insert into I_S values(101,1,500,4);
+
+i. Write a function to accept the city name as input and returns the
+number of suppliers living in that city.
+
+create or replace function h(ct char(10)) returns int as $$
+ declare
+   c int;
+  begin
+   select count(*) into c from supplier where city=ct  ;
+   return c;
+ end ; $$ language plpgsql;
+ select h('pune');
+ii. Write a cursor to display the names of items whose rate is more
+than 500.
+
+create or replace function a() returns void as $$
+  declare 
+  name item.iname%type;
+  c1 cursor for select iname from item,i_s where item.item_no=i_s.item_no and rate>500;
+ begin
+   open c1;
+    loop
+    fetch c1 into name;
+    exit when not found;
+     raise notice'Item name=%',name;
+     end  loop;
+    close c1;
+ end;
+  $$ language plpgsql;
+ select a(); 
+ 
+iii. Write a trigger before insert or update on rate field. If the rate is
+ less than 50 then raise the appropriate exception
+ 
+create or replace function k() returns trigger as $$
+ begin
+   if new.rate<50 then
+    raise exception'Rate should be greater than 50';
+   end if;
+ end ; $$ language plpgsql;
+
+ create trigger l before insert or update on i_s for each row execute procedure k();
+insert into i_s values(103,1,20,56);

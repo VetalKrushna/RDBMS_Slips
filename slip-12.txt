@@ -1,0 +1,45 @@
+
+create table Department(dno int primary key,dname varchar(10) not null,city varchar(10));
+
+create table employee(eno int primary key,ename varchar(10)not null,salary int check(salary>0),dno int references Dept);
+
+insert into department values(101,'computer','pune');
+insert into department values(102,'account','mumbai');
+insert into department values(103,'sales','pune');
+
+insert into employee values(1,'om',50000,101);
+insert into employee values(2,'sai',40000,101);
+
+insert into employee values(3,'ram',70000,102);
+insert into employee values(4,'sham',24000,102);
+
+insert into employee values(5,'aba',40000,103);
+insert into employee values(6,'baba',25000,103);
+
+i. Write a function to accept department city as input and returns the total number of departments in that city.
+create or replace function d(d_city varchar(10))returns int as $$
+  declare
+    c int;
+  begin
+   select count(*) into c from department where city=d_city;
+    return c;
+  end ; $$ language plpgsql;
+ select d('pune');  
+
+ii. Write a cursor to display the department-wise names of employees whose salary is between 50000 and 70000.
+=
+  create or replace 
+
+iii. Write a trigger before inserting an employee record in the Employee table. Raise an exception if salary < 0.
+=
+ create or replace function f()returns trigger as $$ 
+  begin
+   if new.salary<=0 then
+     raise exception'Salary should be greater than 0';
+    else raise notice'Isertion successfully completed';
+    end if;
+ end; $$ language plpgsql;
+ 
+ create trigger t22 before insert on employee for each row execute procedure f();
+  
+    

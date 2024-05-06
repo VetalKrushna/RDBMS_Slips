@@ -1,0 +1,69 @@
+
+
+create table Department(dno int primary key,dname varchar(10) not null,city varchar(10));
+
+create table employee(eno int primary key,ename varchar(10)not null,salary int check(salary>0),dno int references Dept);
+
+insert into department values(101,'computer','pune');
+insert into department values(102,'account','mumbai');
+insert into department values(103,'HR','pune');
+
+insert into employee values(1,'om',50000,101);
+insert into employee values(2,'sai',40000,101);
+
+insert into employee values(3,'ram',70000,102);
+insert into employee values(4,'sham',24000,102);
+
+insert into employee values(5,'aba',40000,103);
+insert into employee values(6,'baba',25000,103);
+
+i. Write a function to accept department name and display the
+average salary of employees in that department.
+ 
+create or replace function av_salary(d_name varchar(10)) returns float as $$
+  declare 
+    av float;
+   begin 
+    select avg(salary) into av from employee as e, department as d where e.dno=d.dno and dname=d_name;
+  return av;
+ end; $$ language plpgsql;
+ select av_salary('HR');
+ 
+
+ii. Write a cursor to display the names of employees who works in
+“HR” department.
+  
+  create or replace function disp_hr()returns void as $$
+ declare 
+  e_name employee.ename%type;
+  c1 cursor for select ename from employee as e, department as d where e.dno=d.dno and dname='HR';
+  begin 
+   open c1;
+      loop
+     fetch c1 into e_name;
+     exit when not found;
+       raise notice'Employee name=%',e_name;
+     end loop;
+   close c1;
+ end ; $$ language plpgsql;
+ select disp_hr();
+
+
+
+iii. Write a trigger before updating an employee record in the
+Employee table. Raise a notice and display the message
+“Employee record is being updated”.
+ 
+ create or replace function tri() returns trigger as $$
+ begin
+  if new.eno>0 then
+   raise notice'“Employee record is being updated”.';
+ end if ;
+end ; $$ language plpgsql;
+ 
+ create trigger j before update on employee for each row 
+ begin
+   raise notice'“Employee record is being updated”.';
+ end ;
+$$ language plpgsql;
+ 

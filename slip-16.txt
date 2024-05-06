@@ -1,0 +1,69 @@
+mant to many
+create table student(Roll_No int primary key, Sname varchar (20), Sclass char (10)check (Sclass in('fy','sy','ty')));
+
+create table teacher(tno int primary key,tname varchar(10),experience numeric(5));
+ 
+create table st(Roll_No int references student,tno int references teacher,subject text);
+ 
+insert into student values(1,'sham','fy');
+insert into student values(2,'ram','sy');
+insert into student values(3,'aman','sy');
+insert into student values(4,'sai','ty');
+
+insert into teacher values(11,'Mr.sai',12);
+insert into teacher values(22,'Mr.patil',4);
+insert into teacher values(33,'Mrs.shinde',7);
+insert into teacher values(44,'Mrs.pawar',11);
+
+insert into st values(1,11,'DBMS');
+insert into st values(2,22,'COMPUTER');
+insert into st values(3,33,'DBMS');
+insert into st values(4,44,'DBMS');
+
+i. Write a trigger before insert the record of the student in the Student
+table. If the Roll_No is less than or equal to zero then the trigger 
+gets fired and displays the message “Invalid Roll Number”.
+
+create or replace function i() returns trigger as $$
+ begin
+   if new.Roll_No<=0 then
+     raise exception'Invalid Roll Number';
+   end if ;
+ end ;
+$$ language plpgsql;
+ 
+ create trigger o before insert on student for each row execute procedure i();
+
+ select * from student;
+
+ii. Write a cursor to accept the student's name from the user as an
+input and display names of all teachers teaching that student.
+
+create or replace  function s(name student.sname%type)returns void as $$
+ declare
+  t teacher.tname%type;
+  c1 cursor for select tname from teacher as t,student as s ,st where s.Roll_No=st.Roll_No and t.tno=st.tno and sname=name;
+ begin
+   open c1;
+    loop
+    fetch c1 into t;
+    exit when not found;
+      raise notice'teacher name=%',t;
+    end loop;
+   close c1;
+ end; $$ language plpgsql;
+select s('sham');
+
+
+
+iii. Write a stored function to count the number of teachers having
+experience > 10 years
+
+create or replace function l()returns int as $$
+ declare
+  c int;
+  begin
+   select count(*) into c from teacher where experience>10;
+   return c;
+ end ; $$ language plpgsql;
+ select l();

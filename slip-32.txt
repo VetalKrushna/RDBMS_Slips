@@ -1,0 +1,46 @@
+create table Area(aname varchar(20) primary key,area_type varchar(10));
+
+insert into area values('Shriram','Urban');
+insert into area values('Jayram','Rural');
+
+create table Person(pnumber integer primary key, pname varchar(20),birthdate date,income money, aname varchar (20)references area);
+
+insert into person values(1,'Om','2006-04-20','5453121','Shriram');
+insert into person values(2,'Sai','11-04-2018','0453121','Jayram');
+insert into person values(3,'Ram','06-03-2001','7753121','Shriram');
+
+i. Write a function to count the people who are born in month .
+ create or replace function p1()returns int as $$
+  declare
+    c int;
+    begin
+    select  count(*) into c from person where extract(month from birthdate)=04;
+    return c;
+  end ; $$ language plpgsql;
+ select p1();
+
+ii. Write a trigger which will prevent deleting persons from area .
+   create or replace function ll() returns trigger as $$
+ begin
+   raise exception'Record can not be delete';
+  end; $$ language plpgsql;
+ 
+ create trigger lll before delete on person for each row execute procedure ll();
+ delete from person where pnumber=1;
+
+iii. Write a cursor to accept area_type from user and count people living in that 
+are
+ create or replace function kk(atype area.area_type%type)returns int as $$ 
+  declare 
+c int;
+ c1 cursor for select count(*) from area,person where person.aname=area.aname and area_type=atype;
+ begin
+  open c1;
+   loop
+   fetch c1 into c;
+   exit when not found;
+    raise notice'% person live in % area',c,atype;
+     end loop;
+ close c1;
+ end ; $$ language plpgsql;
+ select kk('Urban');

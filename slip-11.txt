@@ -1,0 +1,49 @@
+create table Customer (cno integer primary key ,  cname varchar(20), city varchar(20));
+insert into customer values(101,'Ram','Pune');
+insert into customer values(102,'Om','Nagar');
+
+create table Account (accno integer primary key, acc_type varchar(10), opening_date date, balance money,
+cno int references customer);
+
+insert into Account values(1,'saving','2004-03-31','5753554',101);
+insert into Account values(2,'current','2004-03-31','5753554',101);
+insert into Account values(3,'saving','2004-03-31','5753554',102);
+
+
+
+Customer and Account are related with a one to many relationship
+
+i. Write a function to display the number of accounts whose opening date is before’03/07/2015’.
+ create or replace function dis() returns int as $$ 
+ declare 
+  c int ;
+   begin
+  select count(*) into c from account where opening_date='2015-07-03';
+  return c;
+  end; $$ language plpgsql;
+
+ii. Write a cursor to display the account details of all customers from “Pune” city.
+ 
+ create or replace function fq()returns void as $$ 
+ declare 
+  r1 account%rowtype;
+  c1 cursor for select * from account as a,customer as c where c.cno=a.cno and city='Pune';
+ begin
+   open c1;
+    loop
+    fetch c1 into r1;
+     exit when not found;
+           
+    raise notice'Account no=% Type=% Open date=% Balance=%',r1.accno,r1.acc_type,r1.opening_date,r1.balance;
+    end loop;
+ close c1;
+end; $$ language plpgsql;
+
+select fq();
+iii. Write a trigger before deleting an account record from Account table. Raise a notice and display the message “Account record is being deleted.”
+
+  create or replace function s()returns trigger as $$
+   begin
+    if
+
+create trigger tt before delete on account for each row execute procedure s();

@@ -1,0 +1,51 @@
+create table Customer (cno integer primary key ,  cname varchar(20), city varchar(20));
+insert into customer values(101,'Ram','Pune');
+insert into customer values(102,'Om','Nagar');
+
+create table Account (accno integer primary key, acc_type varchar(10), opening_date date, balance money,
+cno int references customer);
+
+insert into Account values(1,'saving','2004-03-31','5753554',101);
+insert into Account values(2,'current','2004-03-31','5753554',101);
+insert into Account values(3,'saving','2004-03-31','5753554',102);
+
+i. Write a function to accept account type as input and give the maximum account balance of that type.
+  create or replace function at(atype varchar(10))returns money as $$
+   declare
+   ma money;
+   begin
+    select max(balance) into ma from account where acc_type=atype;
+    return ma;
+    end; $$ language plpgsql;
+  select at('saving');
+
+ 
+ii. Write a cursor to display account details of all customers of “Pune” city.
+
+ create or replace function c()returns void as $$
+ declare
+  r1 account%rowtype;
+   c1 cursor for select * from account as a,customer as c where c.cno=a.cno and city='Pune';
+ begin
+    open c1;
+   loop
+    fetch c1 into r1;
+     exit when not found;
+      raise notice'Ano=% Atype=% Date=% Balance=%',r1.accno,r1.acc_type,r1.opening_date,r1.balance;
+  end loop;
+ close c1;
+ end ; $$ language plpgsql;
+ select c();
+
+iii. Write a trigger before inserting an account record in Account table and raise exception if balance is <500.
+ create or replace function d() returns trigger as $$
+  begin
+  if new.balance<='500' then
+     raise exception'Balance should be greater than 500';
+   end if;
+ end; $$ language plpgsql;
+ 
+ create trigger h before insert on account for each row execute procedure d();
+insert into account values(4,'current','03-02-4465','400',101);
+
+  
