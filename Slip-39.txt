@@ -1,0 +1,87 @@
+Slip 39
+
+create table movie(m_name varchar(20)primary key,release_year int,budget money);
+create table producer(p_id int primary key,pname varchar(20),p_address varchar(20));
+create table mp(m_name varchar(20)references movie,p_id int references producer);
+
+insert into movie values('RRR',2024,100000);
+insert into movie values('War',2023,300000);
+insert into movie values('Attack',2019,200000);
+
+insert into producer values(1,'Krushna','shrirampur');
+insert into producer values(2,'Sahil','pune');
+insert into producer values(3,'Kunal','shrirampur');
+
+insert into mp values('RRR',1);
+insert into mp values('War',2);
+insert into mp values('Attack',3);
+insert into mp values('RRR',1);
+insert into mp values('Attack',2);
+
+select *from movie;
+select*from producer;
+select*from mp;
+
+1]Write a stored function which accepts the producer name and prints the number of 
+movies produced by him.
+
+   create or replace function fk(name producer.pname%type) returns void as 
+$$
+  declare
+    cnt int;
+     c1 cursor for select count(*) from movie as m,producer as p, mp where     mp.m_name=m.m_name and p.p_id=mp.p_id and pname=name;
+  begin
+   open c1;
+    loop
+      fetch c1 into cnt;
+      exit when not found;
+       raise notice'% Movie produced by %',cnt,name;
+     end loop;
+    close c1;
+ end; $$
+ language plpgsql;
+  
+ 
+  select fk('Krushna');
+
+2]Write a stored function using cursor, which will accept the movie name and print 
+the names of all producers who have produced that movie.
+
+create or replace function kf(name movie.m_name%type)returns void
+ as
+ $$
+ declare
+  r1 producer.pname%type;
+  c1 cursor for select p.pname from movie as m,producer as p, mp where     mp.m_name=m.m_name and p.p_id=mp.p_id and m.m_name=name;
+ begin
+  open c1;
+   loop
+     fetch c1 into r1;
+     exit when not found;
+      raise notice'PRODUCER Name=%',r1;
+   end loop;
+  close c1;
+  end;$$
+ language plpgsql;
+
+  select kf('RRR');
+
+3]Write a trigger which will be executed whenever insertion is made to the movie 
+table. If the budget is less than 1,00,000 do not allow the insertion. Give appropriate 
+message.
+
+create or replace function kk()returns trigger as
+$$
+ 
+  begin
+   if(new.budget<'100000')then
+     raise exception'Budget is less than 1,00,000. Please increase the budget!!';
+   end if;
+  return new;
+ end; $$
+ language plpgsql;
+
+create trigger t67 before insert on movie
+for each row execute procedure kk();
+
+insert into movie values('Attack',2020,20000);
